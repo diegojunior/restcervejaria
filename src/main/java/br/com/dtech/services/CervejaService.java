@@ -3,7 +3,6 @@ package br.com.dtech.services;
 import java.net.URI;
 import java.util.List;
 
-import javax.jws.WebParam;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
@@ -34,15 +33,15 @@ public class CervejaService {
 	private static final int TAMANHO_PAGINA = 20;
 	
 	@GET
-	public Cervejas listaTodasAsCervejas(@QueryParam("pagina") int pagina) {
-		List<Cerveja> cervejas = estoques.listarCervejas(pagina, TAMANHO_PAGINA);
+	public Cervejas listaTodasAsCervejas(@QueryParam("pagina") final int paginaParam) {
+		final List<Cerveja> cervejas = estoques.listarCervejas(paginaParam, TAMANHO_PAGINA);
 		return new Cervejas(cervejas);
 	}
 	
 	@GET
 	@Path("{nome}")
-	public Cerveja encontreCerveja(@PathParam("nome") String nomeDaCerveja) {
-		Cerveja cerveja = estoques.recuperarCervejaPeloNome(nomeDaCerveja);
+	public Cerveja encontreCerveja(@PathParam("nome") final String nomeDaCerveja) {
+		final Cerveja cerveja = estoques.recuperarCervejaPeloNome(nomeDaCerveja);
 		if (cerveja != null) {
 			return cerveja; 
 		}
@@ -50,31 +49,31 @@ public class CervejaService {
 	}
 	
 	@POST
-	public Response criarCerveja(Cerveja cerveja) {
+	public Response criarCerveja(final Cerveja cerveja) {
 		try {
 			
 			estoques.adicionarCerveja(cerveja);
 			
-		} catch (CervejaJaExisteException e) {
+		} catch (final CervejaJaExisteException e) {
 			throw new WebApplicationException(Status.CONFLICT);
 		}
 		
-		URI url = UriBuilder.fromPath("cervejas/{nome}").build(cerveja.getNome());
+		final URI url = UriBuilder.fromPath("cervejas/{nome}").build(cerveja.getNome());
 		
 		return Response.created(url).entity(cerveja).build();
 	}
 	
 	@PUT
 	@Path("{nome}")
-	public void atualizarCerveja(@PathParam("nome") String nome, Cerveja cerveja) {
-		encontreCerveja(nome);
+	public void atualizarCerveja(@PathParam("nome") final String nome, final Cerveja cerveja) {
+		this.encontreCerveja(nome);
 		cerveja.setNome(nome);
 		estoques.atualizarCerveja(cerveja);
 	}
 	
 	@DELETE
-	@Path("nome")
-	public void apagarCerveja(@PathParam("nome") String nome) {
+	@Path("{nome}")
+	public void apagarCerveja(@PathParam("nome") final String nome) {
 		estoques.apagarCerveja(nome);
 	}
 	
