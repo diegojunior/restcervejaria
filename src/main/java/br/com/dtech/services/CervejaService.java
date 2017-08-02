@@ -1,8 +1,15 @@
 package br.com.dtech.services;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.net.URI;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
@@ -13,6 +20,7 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.WebApplicationException;
+import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
@@ -24,13 +32,35 @@ import br.com.dtech.model.Estoque;
 import br.com.dtech.model.rest.Cervejas;
 
 @Path("/cervejas")
-@Consumes({MediaType.APPLICATION_XML})
-@Produces({MediaType.APPLICATION_XML})
+@Consumes({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
+@Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
 public class CervejaService {
 
 	private static Estoque estoques = new Estoque();
 	
 	private static final int TAMANHO_PAGINA = 20;
+	
+	private static Map<String, String> EXTENSOES;
+	
+	static {
+		EXTENSOES = new HashMap<String, String>();
+		EXTENSOES.put("image/jpg", ".jpg");
+		
+	}
+	
+	@POST
+	@Path("{nome}")
+	@Consumes("image/*")
+	public Response criaImagem(@PathParam("nome") final String nomeDaImagem, @Context final HttpServletRequest request, final byte[] dados) throws IOException {
+		final String userHome = System.getProperty("user.home");
+		final String mimeType = request.getContentType();
+		final FileOutputStream fileOutputStream = new FileOutputStream(userHome + File.separator + nomeDaImagem + EXTENSOES.get(mimeType));
+		fileOutputStream.write(dados);
+		fileOutputStream.flush();
+		fileOutputStream.close();
+		
+		return Response.ok().build();
+	}
 	
 	@GET
 	public Cervejas listaTodasAsCervejas(@QueryParam("pagina") final int paginaParam) {
@@ -46,6 +76,22 @@ public class CervejaService {
 			return cerveja; 
 		}
 		throw new WebApplicationException(Status.NOT_FOUND);
+	}
+	
+	@GET
+	@Path("{nome}")
+	@Produces("image/*")
+	public Response recuperarImagem(@PathParam("nome") final String nomeDaCerveja) throws IOException {
+		final InputStream stream = CervejaService.class.getResourceAsStream("/" + nomeDaCerveja + ".jpg");
+		
+		if (stream == null)
+			throw new WebApplicationException(Status.NOT_FOUND);
+		
+		final byte[] dados = new byte[stream.available()];
+		stream.read(dados);
+		stream.close();
+		
+		return Response.ok(dados).type("image/jpg").build();
 	}
 	
 	@POST
