@@ -13,6 +13,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
+import javax.ws.rs.HEAD;
 import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
@@ -77,6 +78,27 @@ public class CervejaService {
 		}
 		throw new WebApplicationException(Status.NOT_FOUND);
 	}
+	
+	@HEAD
+	@Path("{nome}")
+	public Cerveja encontreCervejaHead(@PathParam("nome") final String nomeDaCerveja) {
+		final Cerveja cerveja = estoques.recuperarCervejaPeloNome(nomeDaCerveja);
+		if (cerveja != null) {
+			return cerveja; 
+		}
+		throw new WebApplicationException(Status.NOT_FOUND);
+	}
+
+	@GET
+	@Path("buscacerveja/nome/{nome}/descricao/{descricao}")
+	public Cerveja buscaPorNomeDescricao(@PathParam("nome") final String nomeDaCerveja, @PathParam("descricao") final String decricao) {
+		final Cerveja cerveja = estoques.recuperarCervejaPeloNome(nomeDaCerveja);
+		if (cerveja != null) {
+			return cerveja; 
+		}
+		throw new WebApplicationException(Status.NOT_FOUND);
+	}
+
 	
 	@GET
 	@Path("{nome}")
